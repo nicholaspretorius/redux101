@@ -1,28 +1,29 @@
 // library code
-function createStore(reducer) {
-  let state;
-  let listeners = [];
 
-  const getState = () => state;
+// function createStore(reducer) {
+//   let state;
+//   let listeners = [];
 
-  const subscribe = listener => {
-    listeners.push(listener);
-    return () => {
-      listeners = listeners.filter(l => l !== listener);
-    };
-  };
+//   const getState = () => state;
 
-  const dispatch = action => {
-    state = reducer(state, action);
-    listeners.forEach(listener => listener()); // invoke all the listeners
-  };
+//   const subscribe = listener => {
+//     listeners.push(listener);
+//     return () => {
+//       listeners = listeners.filter(l => l !== listener);
+//     };
+//   };
 
-  return {
-    getState,
-    subscribe,
-    dispatch
-  };
-}
+//   const dispatch = action => {
+//     state = reducer(state, action);
+//     listeners.forEach(listener => listener()); // invoke all the listeners
+//   };
+
+//   return {
+//     getState,
+//     subscribe,
+//     dispatch
+//   };
+// }
 
 // app code: dev writes reducer function
 
@@ -40,6 +41,45 @@ function createRemoveButton(onClick) {
   removeBtn.addEventListener("click", onClick);
   return removeBtn;
 }
+
+const logger = store => next => action => {
+  console.group(action.type);
+  console.log("The action: ", action);
+  const result = next(action);
+  console.log("The result: ", store.getState());
+  console.groupEnd();
+  return result;
+};
+
+// return return pattern is 'currying', next is calls next middleware or dispatch
+// using ES6
+const checker = store => next => action => {
+  if (action.type === ADD_TODO && action.todo.name.toLowerCase().includes("bitcoin")) {
+    return alert("Nope, that's a bad idea");
+  }
+
+  if (action.type === ADD_GOAL && action.goal.name.toLowerCase().includes("bitcoin")) {
+    return alert("Nope, that's a worse idea");
+  }
+
+  return next(action);
+};
+
+// function checker(store) {
+//   return function(next) {
+//     return function(action) {
+//       if (action.type === ADD_TODO && action.todo.name.toLowerCase().includes("bitcoin")) {
+//         return alert("Nope, that's a bad idea");
+//       }
+
+//       if (action.type === ADD_GOAL && action.goal.name.toLowerCase().includes("bitcoin")) {
+//         return alert("Nope, that's a worse idea");
+//       }
+
+//       return next(action);
+//     };
+//   };
+// }
 
 function addTodoToDom(todo) {
   const node = document.createElement("li");
@@ -142,17 +182,23 @@ function goals(state = [], action) {
   }
 }
 
-function app(state = {}, action) {
-  return {
-    todos: todos(state.todos, action),
-    goals: goals(state.goals, action)
-  };
-}
+// function app(state = {}, action) {
+//   return {
+//     todos: todos(state.todos, action),
+//     goals: goals(state.goals, action)
+//   };
+// }
 
-const store = createStore(app);
+const store = Redux.createStore(
+  Redux.combineReducers({
+    todos,
+    goals
+  }),
+  Redux.applyMiddleware(logger, checker)
+);
 
 store.subscribe(() => {
-  console.log("Update state: ", store.getState());
+  // console.log("Update state: ", store.getState());
   const { todos, goals } = store.getState();
 
   document.getElementById("todos").innerHTML = "";
@@ -167,9 +213,7 @@ function addTodo() {
   const name = input.value;
 
   if (name === "") return;
-  console.log("Add Todo: ", name);
   input.value = "";
-
   store.dispatch(
     addTodoAction({
       id: generateId(),
@@ -183,9 +227,7 @@ function addGoal() {
   const input = document.getElementById("goal");
   const name = input.value;
   if (name === "") return;
-  console.log("Add Goal: ", name);
   input.value = "";
-
   store.dispatch(
     addGoalAction({
       id: generateId(),
