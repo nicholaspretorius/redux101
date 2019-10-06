@@ -38,11 +38,19 @@
 
     <script src="index.js" type="text/javascript"></script>
     <script type="text/babel">
-      function List({ items }) {
+      function List({ items, remove, toggle }) {
         return (
           <ul>
             {items.map(item => (
-              <li key={item.id}>{item.name}</li>
+              <li key={item.id}>
+                <span
+                  style={{ textDecoration: item.complete ? "line-through" : "none" }}
+                  onClick={() => toggle(item.id)}
+                >
+                  {item.name}
+                </span>
+                <button onClick={() => remove(item.id)}>X</button>
+              </li>
             ))}
           </ul>
         );
@@ -63,6 +71,14 @@
           );
         };
 
+        removeItem = id => {
+          this.props.store.dispatch(removeTodoAction(id));
+        };
+
+        toggleItem = id => {
+          this.props.store.dispatch(toggleTodoAction(id));
+        };
+
         render() {
           const { todos } = this.props;
           return (
@@ -70,7 +86,7 @@
               <h3>Todos</h3>
               <input type="text" placeholder="Add Todo" ref={input => (this.input = input)} />
               <button onClick={this.addItem}>Add Todo</button>
-              <List items={todos} />
+              <List items={todos} remove={this.removeItem} toggle={this.toggleItem} />
             </div>
           );
         }
