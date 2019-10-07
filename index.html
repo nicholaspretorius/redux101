@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/react@16.3.0-alpha.1/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+    <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
   </head>
   <body>
     <div>
@@ -45,7 +46,7 @@
               <li key={item.id}>
                 <span
                   style={{ textDecoration: item.complete ? "line-through" : "none" }}
-                  onClick={() => toggle(item.id)}
+                  onClick={() => toggle && toggle(item.id)}
                 >
                   {item.name}
                 </span>
@@ -107,6 +108,10 @@
           );
         };
 
+        removeGoal = id => {
+          this.props.store.dispatch(removeGoalAction(id));
+        };
+
         render() {
           const { goals } = this.props;
           return (
@@ -114,7 +119,7 @@
               <h3>Goals</h3>
               <input type="text" placeholder="Add Goal" ref={input => (this.goal = input)} />
               <button onClick={this.addGoal}>Add Goal</button>
-              <List items={goals} />
+              <List items={goals} remove={this.removeGoal} />
             </div>
           );
         }
@@ -122,6 +127,15 @@
 
       class App extends React.Component {
         componentDidMount() {
+          //   API.fetchTodos().then(todos => console.log("Todos: ", todos));
+          //   API.fetchGoals().then(goals => console.log("Goals: ", goals));
+
+          Promise.all([API.fetchTodos(), API.fetchGoals()]).then(([todos, goals]) => {
+            console.log("Todos", todos);
+            console.log("Goals", goals);
+            store.dispatch(receiveDataAction(todos, goals));
+          });
+
           const { store } = this.props;
           store.subscribe(() => this.forceUpdate());
         }
