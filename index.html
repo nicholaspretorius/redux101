@@ -12,29 +12,6 @@
     <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
   </head>
   <body>
-    <!-- <div>
-      <h3>Todos</h3>
-
-      <input type="text" placeholder="Add to do description" name="todo" id="todo" />
-      <button type="submit" id="todoBtn">
-        Add Todo
-      </button>
-
-      <ul id="todos"></ul>
-    </div>
-    <div>
-      <h3>Goals</h3>
-
-      <input type="text" placeholder="Add goal description" name="goal" id="goal" />
-      <button type="submit" id="goalBtn">
-        Add Goal
-      </button>
-
-      <ul id="goals"></ul>
-    </div>
-
-    <hr /> -->
-
     <div id="app"></div>
 
     <script src="index.js" type="text/javascript"></script>
@@ -46,11 +23,11 @@
               <li key={item.id}>
                 <span
                   style={{ textDecoration: item.complete ? "line-through" : "none" }}
-                  onClick={() => toggle && toggle(item.id)}
+                  onClick={() => toggle && toggle(item)}
                 >
                   {item.name}
                 </span>
-                <button onClick={() => remove(item.id)}>X</button>
+                <button onClick={() => remove(item)}>X</button>
               </li>
             ))}
           </ul>
@@ -63,21 +40,30 @@
           const name = this.input.value;
           this.input.value = "";
 
-          this.props.store.dispatch(
-            addTodoAction({
-              id: generateId(),
-              name: name,
-              complete: false
+          API.saveTodo(name)
+            .then(todo => {
+              this.props.store.dispatch(addTodoAction(todo));
             })
-          );
+            .catch(() => {
+              alert("There was an error adding the item.");
+            });
         };
 
-        removeItem = id => {
-          this.props.store.dispatch(removeTodoAction(id));
+        removeItem = todo => {
+          this.props.store.dispatch(removeTodoAction(todo.id));
+          return API.deleteTodo(todo.id).catch(e => {
+            this.props.store.dispatch(addTodoAction(todo));
+            alert("There was an error deleting the item.", e);
+          });
         };
 
-        toggleItem = id => {
-          this.props.store.dispatch(toggleTodoAction(id));
+        toggleItem = item => {
+          this.props.store.dispatch(toggleTodoAction(item.id));
+
+          return API.saveTodoToggle(item.id).catch(() => {
+            this.props.store.dispatch(toggleTodoAction(item.id));
+            alert("There was an error toggling the item.");
+          });
         };
 
         render() {
@@ -96,20 +82,23 @@
       class Goals extends React.Component {
         addGoal = e => {
           e.preventDefault();
-          const name = this.goal.value;
-          this.goal.value = "";
 
-          this.props.store.dispatch(
-            addGoalAction({
-              id: generateId(),
-              name: name,
-              complete: false
+          API.saveGoal(this.goal.value)
+            .then(goal => {
+              this.goal.value = "";
+              this.props.store.dispatch(addGoalAction(goal));
             })
-          );
+            .catch(() => {
+              alert("There was an error adding the goal.");
+            });
         };
 
-        removeGoal = id => {
-          this.props.store.dispatch(removeGoalAction(id));
+        removeGoal = item => {
+          this.props.store.dispatch(removeGoalAction(item.id));
+          return API.deleteGoal(item.id).catch(() => {
+            this.props.store.dispatch(addGoalAction(item));
+            alert("There was an error deleting the goal.");
+          });
         };
 
         render() {
