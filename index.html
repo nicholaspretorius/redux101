@@ -12,7 +12,7 @@
     <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
   </head>
   <body>
-    <div>
+    <!-- <div>
       <h3>Todos</h3>
 
       <input type="text" placeholder="Add to do description" name="todo" id="todo" />
@@ -33,7 +33,7 @@
       <ul id="goals"></ul>
     </div>
 
-    <hr />
+    <hr /> -->
 
     <div id="app"></div>
 
@@ -127,12 +127,7 @@
 
       class App extends React.Component {
         componentDidMount() {
-          //   API.fetchTodos().then(todos => console.log("Todos: ", todos));
-          //   API.fetchGoals().then(goals => console.log("Goals: ", goals));
-
           Promise.all([API.fetchTodos(), API.fetchGoals()]).then(([todos, goals]) => {
-            console.log("Todos", todos);
-            console.log("Goals", goals);
             store.dispatch(receiveDataAction(todos, goals));
           });
 
@@ -141,7 +136,11 @@
         }
         render() {
           const { store } = this.props;
-          const { todos, goals } = store.getState();
+          const { todos, goals, loading } = store.getState();
+
+          if (loading) {
+            return <div>Loading...</div>;
+          }
 
           return (
             <div>

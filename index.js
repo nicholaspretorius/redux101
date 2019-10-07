@@ -81,37 +81,37 @@ const checker = store => next => action => {
 //   };
 // }
 
-function addTodoToDom(todo) {
-  const node = document.createElement("li");
-  const text = document.createTextNode(todo.name);
-  node.appendChild(text);
-  node.classList.add(todo.id);
-  node.style.textDecoration = todo.complete ? "line-through" : "none";
-  node.addEventListener("click", toggleTodo);
+// function addTodoToDom(todo) {
+//   const node = document.createElement("li");
+//   const text = document.createTextNode(todo.name);
+//   node.appendChild(text);
+//   node.classList.add(todo.id);
+//   node.style.textDecoration = todo.complete ? "line-through" : "none";
+//   node.addEventListener("click", toggleTodo);
 
-  const removeBtn = createRemoveButton(() => {
-    store.dispatch(removeTodoAction(todo.id));
-  });
+//   const removeBtn = createRemoveButton(() => {
+//     store.dispatch(removeTodoAction(todo.id));
+//   });
 
-  node.appendChild(removeBtn);
+//   node.appendChild(removeBtn);
 
-  document.getElementById("todos").appendChild(node);
-}
+//   document.getElementById("todos").appendChild(node);
+// }
 
-function addGoalToDom(goal) {
-  const node = document.createElement("li");
-  const text = document.createTextNode(goal.name);
-  node.appendChild(text);
-  node.classList.add(goal.id);
+// function addGoalToDom(goal) {
+//   const node = document.createElement("li");
+//   const text = document.createTextNode(goal.name);
+//   node.appendChild(text);
+//   node.classList.add(goal.id);
 
-  const removeBtn = createRemoveButton(() => {
-    store.dispatch(removeGoalAction(goal.id));
-  });
+//   const removeBtn = createRemoveButton(() => {
+//     store.dispatch(removeGoalAction(goal.id));
+//   });
 
-  node.appendChild(removeBtn);
+//   node.appendChild(removeBtn);
 
-  document.getElementById("goals").appendChild(node);
-}
+//   document.getElementById("goals").appendChild(node);
+// }
 
 const ADD_TODO = "ADD_TODO";
 const REMOVE_TODO = "REMOVE_TODO";
@@ -120,6 +120,7 @@ const ADD_GOAL = "ADD_GOAL";
 const REMOVE_GOAL = "REMOVE_GOAL";
 const RECEIVE_DATA = "RECEIVE_DATA";
 
+// action creators
 function addTodoAction(todo) {
   return {
     type: ADD_TODO,
@@ -163,8 +164,7 @@ function receiveDataAction(todos, goals) {
   };
 }
 
-// action creators
-
+// reducers
 function todos(state = [], action) {
   switch (action.type) {
     case ADD_TODO:
@@ -195,6 +195,15 @@ function goals(state = [], action) {
   }
 }
 
+function loading(state = true, action) {
+  switch (action.type) {
+    case RECEIVE_DATA:
+      return false;
+    default:
+      return state;
+  }
+}
+
 // function app(state = {}, action) {
 //   return {
 //     todos: todos(state.todos, action),
@@ -205,57 +214,58 @@ function goals(state = [], action) {
 const store = Redux.createStore(
   Redux.combineReducers({
     todos,
-    goals
+    goals,
+    loading
   }),
   Redux.applyMiddleware(logger, checker)
 );
 
-store.subscribe(() => {
-  // console.log("Update state: ", store.getState());
-  const { todos, goals } = store.getState();
+// store.subscribe(() => {
+//   // console.log("Update state: ", store.getState());
+//   const { todos, goals } = store.getState();
 
-  document.getElementById("todos").innerHTML = "";
-  document.getElementById("goals").innerHTML = "";
+//   //   document.getElementById("todos").innerHTML = "";
+//   //   document.getElementById("goals").innerHTML = "";
 
-  todos.forEach(addTodoToDom);
-  goals.forEach(addGoalToDom);
-});
+//   //   todos.forEach(addTodoToDom);
+//   //   goals.forEach(addGoalToDom);
+// });
 
-function addTodo() {
-  const input = document.getElementById("todo");
-  const name = input.value;
+// function addTodo() {
+//   const input = document.getElementById("todo");
+//   const name = input.value;
 
-  if (name === "") return;
-  input.value = "";
-  store.dispatch(
-    addTodoAction({
-      id: generateId(),
-      name: name,
-      complete: false
-    })
-  );
-}
+//   if (name === "") return;
+//   input.value = "";
+//   store.dispatch(
+//     addTodoAction({
+//       id: generateId(),
+//       name: name,
+//       complete: false
+//     })
+//   );
+// }
 
-function addGoal() {
-  const input = document.getElementById("goal");
-  const name = input.value;
-  if (name === "") return;
-  input.value = "";
-  store.dispatch(
-    addGoalAction({
-      id: generateId(),
-      name: name,
-      complete: false
-    })
-  );
-}
+// function addGoal() {
+//   const input = document.getElementById("goal");
+//   const name = input.value;
+//   if (name === "") return;
+//   input.value = "";
+//   store.dispatch(
+//     addGoalAction({
+//       id: generateId(),
+//       name: name,
+//       complete: false
+//     })
+//   );
+// }
 
-function toggleTodo(event) {
-  store.dispatch(toggleTodoAction(event.target.className));
-}
+// function toggleTodo(event) {
+//   store.dispatch(toggleTodoAction(event.target.className));
+// }
 
-document.getElementById("todoBtn").addEventListener("click", addTodo);
-document.getElementById("goalBtn").addEventListener("click", addGoal);
+// document.getElementById("todoBtn").addEventListener("click", addTodo);
+// document.getElementById("goalBtn").addEventListener("click", addGoal);
 
 // store.dispatch(
 //   addTodoAction({
