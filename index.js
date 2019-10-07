@@ -22,6 +22,14 @@ const logger = store => next => action => {
   return result;
 };
 
+const thunk = store => next => action => {
+  if (typeof action === "function") {
+    return action(store.dispatch);
+  }
+
+  return next(action);
+};
+
 // return return pattern is 'currying', next is calls next middleware or dispatch
 // using ES6
 const checker = store => next => action => {
@@ -87,6 +95,74 @@ function receiveDataAction(todos, goals) {
   };
 }
 
+function handleInitialData() {
+  return dispatch => {
+    return Promise.all([API.fetchTodos(), API.fetchGoals()])
+      .then(([todos, goals]) => {
+        dispatch(receiveDataAction(todos, goals));
+      })
+      .catch(() => alert("An error occurred fetching initial data."));
+  };
+}
+
+function handleAddTodo(todo, cb) {
+  return dispatch => {
+    return API.saveTodo(todo)
+      .then(item => {
+        dispatch(addTodoAction(item));
+        cb();
+      })
+      .catch(() => {
+        alert("There was an error adding the item.");
+      });
+  };
+}
+
+// async action creator. returns func
+function handleDeleteTodo(todo) {
+  return dispatch => {
+    dispatch(removeTodoAction(todo.id));
+
+    return API.deleteTodo(todo.id).catch(e => {
+      dispatch(addTodoAction(todo));
+      alert("There was an error deleting the item.", e);
+    });
+  };
+}
+
+function handleToggleTodo(todo) {
+  return dispatch => {
+    dispatch(toggleTodoAction(todo.id));
+    return API.saveTodoToggle(todo.id).catch(() => {
+      dispatch(toggleTodoAction(todo.id));
+      alert("There was an error toggling the item.");
+    });
+  };
+}
+
+function handleAddGoal(goal, cb) {
+  return dispatch => {
+    return API.saveGoal(goal)
+      .then(g => {
+        dispatch(addGoalAction(g));
+        cb();
+      })
+      .catch(() => {
+        alert("There was an error adding the goal.");
+      });
+  };
+}
+
+function handleDeleteGoal(goal) {
+  return dispatch => {
+    dispatch(removeGoalAction(goal.id));
+    return API.deleteGoal(goal.id).catch(() => {
+      dispatch(addGoalAction(goal));
+      alert("There was an error deleting the goal.");
+    });
+  };
+}
+
 // reducers
 function todos(state = [], action) {
   switch (action.type) {
@@ -133,5 +209,5 @@ const store = Redux.createStore(
     goals,
     loading
   }),
-  Redux.applyMiddleware(logger, checker)
+  Redux.applyMiddleware(ReduxThunk.default, logger, checker)
 );

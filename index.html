@@ -10,6 +10,7 @@
     <script src="https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
     <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
+    <script src="https://unpkg.com/redux-thunk@2.2.0/dist/redux-thunk.min.js"></script>
   </head>
   <body>
     <div id="app"></div>
@@ -37,33 +38,15 @@
       class Todos extends React.Component {
         addItem = e => {
           e.preventDefault();
-          const name = this.input.value;
-          this.input.value = "";
-
-          API.saveTodo(name)
-            .then(todo => {
-              this.props.store.dispatch(addTodoAction(todo));
-            })
-            .catch(() => {
-              alert("There was an error adding the item.");
-            });
+          this.props.store.dispatch(handleAddTodo(this.input.value, () => (this.input.value = "")));
         };
 
         removeItem = todo => {
-          this.props.store.dispatch(removeTodoAction(todo.id));
-          return API.deleteTodo(todo.id).catch(e => {
-            this.props.store.dispatch(addTodoAction(todo));
-            alert("There was an error deleting the item.", e);
-          });
+          this.props.store.dispatch(handleDeleteTodo(todo));
         };
 
         toggleItem = item => {
-          this.props.store.dispatch(toggleTodoAction(item.id));
-
-          return API.saveTodoToggle(item.id).catch(() => {
-            this.props.store.dispatch(toggleTodoAction(item.id));
-            alert("There was an error toggling the item.");
-          });
+          this.props.store.dispatch(handleToggleTodo(item));
         };
 
         render() {
@@ -82,23 +65,13 @@
       class Goals extends React.Component {
         addGoal = e => {
           e.preventDefault();
-
-          API.saveGoal(this.goal.value)
-            .then(goal => {
-              this.goal.value = "";
-              this.props.store.dispatch(addGoalAction(goal));
-            })
-            .catch(() => {
-              alert("There was an error adding the goal.");
-            });
+          return this.props.store.dispatch(
+            handleAddGoal(this.goal.value, () => (this.goal.value = ""))
+          );
         };
 
         removeGoal = item => {
-          this.props.store.dispatch(removeGoalAction(item.id));
-          return API.deleteGoal(item.id).catch(() => {
-            this.props.store.dispatch(addGoalAction(item));
-            alert("There was an error deleting the goal.");
-          });
+          this.props.store.dispatch(handleDeleteGoal(item));
         };
 
         render() {
@@ -116,10 +89,7 @@
 
       class App extends React.Component {
         componentDidMount() {
-          Promise.all([API.fetchTodos(), API.fetchGoals()]).then(([todos, goals]) => {
-            store.dispatch(receiveDataAction(todos, goals));
-          });
-
+          this.props.store.dispatch(handleInitialData());
           const { store } = this.props;
           store.subscribe(() => this.forceUpdate());
         }
